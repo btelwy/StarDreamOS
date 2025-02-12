@@ -11,7 +11,7 @@
 #endif
 
 // To display text on x86's VGA buffer, write data to this location
-volatile uint16_t vgaBuffer = (uint16_t*)0xB8000;
+volatile uint16_t* vgaBuffer = (uint16_t*)0xB8000;
 // By default, the VGA textmode buffer has a size of 80x25 characters
 const int VGA_COLS = 80;
 const int VGA_ROWS = 25;
@@ -38,7 +38,7 @@ void termInit() {
 }
 
 // Places a single character onto the screen
-void term_putc(char c) {
+void termPutc(char c) {
 	switch (c) {
 	case '\n': // Newline characters should return column to 0 and increment row
 		{
@@ -72,7 +72,7 @@ void term_putc(char c) {
 // Prints an entire string onto the screen
 void termPrint(const char* str) {
 	for (size_t i = 0; str[i] != '\0'; ++i)
-		term_putc(str[i]);
+		termPutc(str[i]);
 }
 
 void kernelMain() {
