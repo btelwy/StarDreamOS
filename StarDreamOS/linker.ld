@@ -1,42 +1,24 @@
-/* The bootloader will start execution at the symbol designated as the entry point */
-ENTRY(start)
+ENTRY(_start)
 
-/* Tell the linker where the various sections of the kernel will be put in the final kernel executable */
-SECTIONS
-{
-	/* Begin putting sections at 1 Megabyte (1M), a good place for kernels to be loaded at by the bootloader */
-	/* This is because memory below 1 Megabyte is reserved for other x86-related things, so we can't use it */
-	. = 1M;
+SECTIONS {
+	/* Start at an offset of 2 MB */
+	. = 0x200000;
 
-	/* We align all sections in the executable at multiples of 4K */
-	/* First put the multiboot header, as it's required to be near the start of the executable otherwise the bootloader won't find it */
-	/* The Multiboot header is Read-Only data, so we can put it in a '.rodata' section */
-	.rodata BLOCK(4K) : ALIGN(4K)
-	{
-		*(.multiboot)
-	}
-
-	/* Executable code */
-	.text BLOCK(4K) : ALIGN(4K)
-	{
+	.text ALIGN(0x1000): {
+		*(.multiboot_header)
 		*(.text)
 	}
 
-	/* Read-only data. */
-	.rodata BLOCK(4K) : ALIGN(4K)
-	{
+	.rodata ALIGN(0x1000): {
 		*(.rodata)
 	}
 
-	/* Read-write data (initialized) */
-	.data BLOCK(4K) : ALIGN(4K)
-	{
+	.data ALIGN(0x1000): {
 		*(.data)
 	}
 
-	/* Read-write data (uninitialized) and stack */
-	.bss BLOCK(4K) : ALIGN(4K)
-	{
+	/* COMMON is a keyword for uninitialized data */
+	.bss ALIGN(0x1000): {
 		*(COMMON)
 		*(.bss)
 	}
