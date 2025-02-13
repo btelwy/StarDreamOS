@@ -12,6 +12,7 @@ C_STD := -std=c17
 .PHONY: all
 .PHONY: run-elf
 .PHONY: run-iso
+.PHONY: burn-iso
 .PHONY: clean
 
 all:
@@ -23,11 +24,16 @@ all:
 	grub-mkrescue $(ISO_DIR) -o $(OUTPUT_ISO)
 	@grub-file --is-x86-multiboot $(OUTPUT_ELF) || echo "Warning: no valid multiboot-v1 header."
 
+# grub-pc-bin is needed to load an ELF file
 run-elf:
 	qemu-system-i386 -display curses -kernel $(OUTPUT_ELF)
 
 run-iso:
 	qemu-system-i386 -display curses -cdrom $(OUTPUT_ISO)
+
+# For safety, disk BURN_DISK must be explicitly defined via command line
+burn-iso:
+	dd if=$(OUTPUT_ISO) of=$(BURN_DISK) bs=1M status=progress
 
 clean:
 	rm -rf $(BUILD_DIR)/*
