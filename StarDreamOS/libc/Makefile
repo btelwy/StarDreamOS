@@ -2,8 +2,8 @@ ARCHDIR = ./arch/$(HOST)
 
 include $(ARCHDIR)/make.config
 
-CFLAGS := $(CFLAGS) $(ARCH_CFLAGS)
-CXXFLAGS := $(CXXFLAGS) $(ARCH_CXXFLAGS)
+CFLAGS := $(CFLAGS) $(ARCH_CFLAGS) -D__is_libc
+CXXFLAGS := $(CXXFLAGS) $(ARCH_CXXFLAGS) -D__is_libc
 LIBK_CFLAGS := $(LIBK_CFLAGS) $(KERNEL_ARCH_CFLAGS) -D__is_libk
 LIBK_CXXFLAGS := $(LIBK_CXXFLAGS) $(KERNEL_ARCH_CXXFLAGS) -D__is_libk
 
@@ -22,7 +22,7 @@ $(ARCH_FREEOBJS) \
 HOSTEDOBJS =\
 $(ARCH_HOSTEDOBJS) \
 
-OBJS=\
+OBJS =\
 $(FREEOBJS) \
 $(HOSTEDOBJS) \
 
@@ -31,10 +31,10 @@ LIBK_OBJS = $(FREEOBJS:.o=.libk.o)
 #BINARIES=libc.a libk.a # Not ready for libc yet.
 BINARIES = libk.a
 
-.PHONY: all clean install install-headers install-libs
+.PHONY: all_c clean_c install_c install-headers_c install-libs_c
 .EXTENSIONS: .o .libk.o .c .S
 
-all: $(BINARIES)
+all_c: $(BINARIES)
 
 libc.a: $(OBJS)
 	$(AR) rcs $@ $(OBJS)
@@ -54,20 +54,20 @@ libk.a: $(LIBK_OBJS)
 .S.libk.o:
 	$(CC) -MD -c $< -o $@ $(LIBK_CFLAGS) $(LIBK_CXXFLAGS)
 
-clean:
+clean_c:
 	rm -f $(BINARIES) *.a
 	rm -f $(OBJS) $(LIBK_OBJS) *.o */*.o */*/*.o
 	rm -f $(OBJS:.o=.d) $(LIBK_OBJS:.o=.d) *.d */*.d */*/*.d
 
-install: install-headers install-libs
+install_c: install-headers_c install-libs_c
 
-install-headers:
+install-headers_c:
 	mkdir -p $(INCLUDEDIR)
 	cp -R --preserve=timestamps ./include/* $(INCLUDEDIR)/
 
-install-libs: $(BINARIES)
+install-libs_c: $(BINARIES)
 	mkdir -p $(LIBDIR)
-	cp $(BINARIES) $(LIBDIR)
+	cp $(BINARIES) $(LIBDIR)/
 
 -include $(OBJS:.o=.d)
 -include $(LIBK_OBJS:.o=.d)

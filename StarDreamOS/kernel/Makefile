@@ -1,14 +1,13 @@
 BOOTDIR ?= $(PREFIX)/boot
 INCLUDEDIR ?= $(PREFIX)/usr/include
-
 ARCHDIR = ./arch/$(HOST)
 
 include $(ARCHDIR)/make.config
 
-CFLAGS := $(CFLAGS) $(KERNEL_ARCH_CFLAGS)
-CXXFLAGS := $(CXXFLAGS) $(KERNEL_ARCH_CXXFLAGS)
+CFLAGS := $(CFLAGS) $(KERNEL_ARCH_CFLAGS) -D__is_kernel
+CXXFLAGS := $(CXXFLAGS) $(KERNEL_ARCH_CXXFLAGS) -D__is_kernel
 LDFLAGS := $(LDFLAGS) $(KERNEL_ARCH_LDFLAGS)
-LIBS := $(LIBS) $(KERNEL_ARCH_LIBS) -D__is_kernel
+LIBS := $(KERNEL_ARCH_LIBS) -D__is_kernel
 
 KERNEL_OBJS =\
 $(KERNEL_ARCH_OBJS) \
@@ -30,10 +29,10 @@ $(LIBS) \
 $(ARCHDIR)/crtend.o \
 $(ARCHDIR)/crtn.o \
 
-.PHONY: all clean install install-headers install-kernel
+.PHONY: all_k clean_k install_k install-headers_k install-kernel_k
 .EXTENSIONS: .o .c .S
 
-all: $(OS).kernel
+all_k: $(OS).kernel
 
 $(OS).kernel: $(OBJS) $(ARCHDIR)/linker.ld
 	$(CC) -T $(ARCHDIR)/linker.ld -o $@ $(CFLAGS) $(LINK_LIST)
@@ -48,18 +47,18 @@ $(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
 .S.o:
 	$(CC) -MD -c $< -o $@ $(CFLAGS) $(CXXFLAGS)
 
-clean:
+clean_k:
 	rm -f $(OS).kernel
 	rm -f $(OBJS) *.o */*.o */*/*.o
 	rm -f $(OBJS:.o=.d) *.d */*.d */*/*.d
 
-install: install-headers install-kernel
+install_k: install-headers_k install-kernel_k
 
-install-headers:
+install-headers_k:
 	mkdir -p $(INCLUDEDIR)
 	cp -R --preserve=timestamps ./include/* $(INCLUDEDIR)/
 
-install-kernel: $(OS).kernel
+install-kernel_k: $(OS).kernel
 	mkdir -p $(BOOTDIR)
 	cp $(OS).kernel $(BOOTDIR)
 

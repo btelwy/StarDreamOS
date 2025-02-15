@@ -2,8 +2,8 @@ OS := stardreamos
 HOST := i686-elf
 QEMU := qemu-system-i386
 
-SYSROOT_DIR := ./sysroot
-PREFIX := $(SYSROOT_DIR)
+SYSROOTDIR := ./sysroot
+PREFIX := $(SYSROOTDIR)
 INCLUDEDIR := $(PREFIX)/usr/include
 LIBDIR := $(PREFIX)/usr/lib
 
@@ -12,23 +12,28 @@ CXX := $(HOST)-g++
 AR := $(HOST)-ar
 
 C_STD := -std=c23
+CXX_STD := -std=c++23
 WARNINGS := -Wall -Wextra -Werror -pedantic
 OPTIMIZING := -Og
 DEBUGGING := -ggdb3
 SANITIZING := -fsanitize=address -fsanitize=leak -fsanitize=undefined
-OTHER := -ffreestanding --sysroot=$(SYSROOT_DIR)
-
-CXX_STD := -std=c++23
+OTHER := -ffreestanding --sysroot=$(SYSROOTDIR)
 
 CFLAGS := $(C_STD) $(WARNINGS) $(OPTIMIZING) $(DEBUGGING) $(OTHER)
-CXXFLAGS := $(CXX_STD) -D__is_libc -Iinclude
+CXXFLAGS := $(CXX_STD)
 LDFLAGS := -nostdlib -lgcc
+
+OUTPUT_ELF = $(SYSROOTDIR)/$(OS).elf
+OUTPUT_ISO = $(SYSROOTDIR)/$(OS).iso
 
 include ./StarDreamOS/kernel/Makefile
 include ./StarDreamOS/libc/Makefile
 
-OUTPUT_ELF = ???
-OUTPUT_ISO = ???
+.PHONY: all run-elf run-iso burn-iso clean
+all:
+	$(MAKE) all_k
+	$(MAKE) all_c
+	grub-mkrescue $(SYSROOTDIR) -o $(OUTPUT_ISO)
 
 # grub-pc-bin is needed to load an ELF file
 run-elf:
