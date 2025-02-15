@@ -54,14 +54,8 @@ dkms.conf
 # Additions
 .vscode/
 build/
-sysroot/bin/
-sysroot/home/
-sysroot/share/
-sysroot/usr/src/
-sysroot/i686-elf/
-sysroot/lib/
-sysroot/libexec/
-sysroot/tmp/
+sysroot/*
+!sysroot/boot/
 
 *.kernel
 *.iso

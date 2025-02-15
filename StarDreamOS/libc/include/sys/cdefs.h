@@ -1,6 +1,6 @@
-#ifndef _SYS_CDEFS_H
-#define _SYS_CDEFS_H 1
+#ifndef _SYS_CDEFS_H_
+#define _SYS_CDEFS_H_ 1
 
-#define __myos_libc 1
+#define __stardreamos_libc 1
 
 #endif

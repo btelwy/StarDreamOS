@@ -1,37 +1,34 @@
-CC := i686-elf-gcc
+OS := stardreamos
+HOST := i686-elf
 QEMU := qemu-system-i386
 
-SYSROOT_DIR := sysroot
-SRC_DIR := kernel
-BUILD_DIR := build
+SYSROOT_DIR := ./sysroot
+PREFIX := $(SYSROOT_DIR)
+INCLUDEDIR := $(PREFIX)/usr/include
+LIBDIR := $(PREFIX)/usr/lib
 
-OUTPUT_ELF = $(BUILD_DIR)/kernel.elf
-OUTPUT_ISO = $(SYSROOT_DIR)/boot/kernel.iso
+CC := $(HOST)-gcc
+CXX := $(HOST)-g++
+AR := $(HOST)-ar
 
-WARNINGS := -Wall -Wextra -Werror -pedantic
 C_STD := -std=c23
+WARNINGS := -Wall -Wextra -Werror -pedantic
 OPTIMIZING := -Og
 DEBUGGING := -ggdb3
 SANITIZING := -fsanitize=address -fsanitize=leak -fsanitize=undefined
-OTHER := -ffreestanding
+OTHER := -ffreestanding --sysroot=$(SYSROOT_DIR)
+
+CXX_STD := -std=c++23
+
 CFLAGS := $(C_STD) $(WARNINGS) $(OPTIMIZING) $(DEBUGGING) $(OTHER)
+CXXFLAGS := $(CXX_STD) -D__is_libc -Iinclude
+LDFLAGS := -nostdlib -lgcc
 
-# Add pattern rules and real targets
-.PHONY: all
+include ./StarDreamOS/kernel/Makefile
+include ./StarDreamOS/libc/Makefile
 
-.PHONY: run-elf
-.PHONY: run-iso
-.PHONY: burn-iso
-.PHONY: clean
-
-all:
-	$(CC) $(CFLAGS) -c $(SRC_DIR)/start.s -o $(BUILD_DIR)/start.o
-	$(CC) $(CFLAGS) -c $(SRC_DIR)/kernel.c -o $(BUILD_DIR)/kernel.o
-	$(CC) $(CFLAGS) -nostdlib -T $(SRC_DIR)/linker.ld $(BUILD_DIR)/start.o $(BUILD_DIR)/kernel.o -o $(OUTPUT_ELF) -lgcc
-
-	@cp $(OUTPUT_ELF) $(SYSROOT_DIR)/boot/kernel.elf
-	@grub-mkrescue $(SYSROOT_DIR) -o $(OUTPUT_ISO)
-	@grub-file --is-x86-multiboot $(OUTPUT_ELF) || echo "Warning: no valid multiboot-v1 header."
+OUTPUT_ELF = ???
+OUTPUT_ISO = ???
 
 # grub-pc-bin is needed to load an ELF file
 run-elf:
@@ -45,4 +42,4 @@ burn-iso:
 	dd if=$(OUTPUT_ISO) of=$(BURN_DISK) bs=1M status=progress
 
 clean:
-	rm -rf $(BUILD_DIR)/*
+
