@@ -61,4 +61,4 @@ install_headers_c:
 	cp -R --preserve=timestamps $(LIBC_INCLUDE_DIR)/* $(INCLUDE_DIR)/
 
 install_libs_c: $(BINARIES_C)
-	cp $(BINARIES_C) $(LIB_DIR)/
+	cp $^ $(LIB_DIR)/

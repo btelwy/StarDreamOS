@@ -3,22 +3,27 @@ HOST_TARGET := i686-elf
 HOST_ARCH := i386
 QEMU := qemu-system-i386
 
-SRC_DIR := ./StarDreamOS
-BUILD_DIR := ./build
+SRC_DIR := ~/projects/StarDreamOS/StarDreamOS
+BUILD_DIR := ~/projects/StarDreamOS/build
+SYSROOT_DIR := ~/projects/StarDreamOS/sysroot
 
-BUILD_DIR_K = $(BUILD_DIR)/kernel
-BUILD_DIR_ARCH_K = $(BUILD_DIR_K)/arch/$(HOST_ARCH)
-BUILD_DIR_C = $(BUILD_DIR)/libc
-BUILD_DIR_ARCH_C = $(BUILD_DIR_C)/arch/$(HOST_ARCH)
+BOOT_DIR := $(SYSROOT_DIR)/boot
+GRUB_DIR := $(BOOT_DIR)/grub
+OUTPUT_ELF = $(BOOT_DIR)/$(OS).elf
+OUTPUT_ISO = $(BOOT_DIR)/$(OS).iso
 
-SYSROOT_DIR := ./sysroot
 PREFIX := $(SYSROOT_DIR)/usr
 INCLUDE_DIR := $(PREFIX)/include
 LIB_DIR := $(PREFIX)/lib
-BOOT_DIR := $(SYROOT_DIR)/boot
 
-OUTPUT_ELF = $(BOOT_DIR)/$(OS).elf
-OUTPUT_ISO = $(BOOT_DIR)/$(OS).iso
+BUILD_DIR_K := $(BUILD_DIR)/kernel
+BUILD_DIR_ARCH_K := $(BUILD_DIR_K)/arch/$(HOST_ARCH)
+BUILD_DIR_KERNEL_K := $(BUILD_DIR_K)/kernel
+BUILD_DIR_C := $(BUILD_DIR)/libc
+BUILD_DIR_ARCH_C := $(BUILD_DIR_C)/arch/$(HOST_ARCH)
+BUILD_DIR_STRING_C := $(BUILD_DIR_C)/string
+BUILD_DIR_STDLIB_C := $(BUILD_DIR_C)/stdlib
+BUILD_DIR_STDIO_C := $(BUILD_DIR_C)/stdio
 
 CC := $(HOST_TARGET)-gcc
 CXX := $(HOST_TARGET)-g++
@@ -41,12 +46,13 @@ include $(SRC_DIR)/libc/Makefile
 
 .PHONY: all init kernel libc run-elf run-iso burn-iso clean
 all: init kernel libc
+	cp $(SRC_DIR)/grub.cfg $(GRUB_DIR)/
 	grub-mkrescue $(SYSROOT_DIR) -o $(OUTPUT_ISO)
 
 init:
-	mkdir -p $(BUILD_DIR_ARCH_K) $(BUILD_DIR_ARCH_C)
-	mkdir -p $(BUILD_DIR_C)/stdio $(BUILD_DIR_C)/stdlib $(BUILD_DIR_C)/string
-	mkdir -p $(BOOT_DIR) $(LIB_DIR) $(INCLUDE_DIR)
+	@mkdir -p $(GRUB_DIR) $(LIB_DIR) $(INCLUDE_DIR)
+	@mkdir -p $(BUILD_DIR_ARCH_K) $(BUILD_DIR_ARCH_C) $(BUILD_DIR_KERNEL_K)
+	@mkdir -p $(BUILD_DIR_STDIO_C) $(BUILD_DIR_STDLIB_C) $(BUILD_DIR_STRING_C)
 
 libc: kernel all_c
 
@@ -63,7 +69,7 @@ run-iso:
 burn-iso:
 	dd if=$(OUTPUT_ISO) of=$(BURN_DISK) bs=1M status=progress
 
-clean:
-	rm -r $(BUILD_DIR)/*
-	rm -r $(INCLUDE_DIR)/*
-	rm -r $(BOOT_DIR)/*
+clean: init
+	rm -rf $(BUILD_DIR)/*
+	rm -rf $(INCLUDE_DIR)/*
+	rm -rf $(BOOT_DIR)/*

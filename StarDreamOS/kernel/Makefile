@@ -10,7 +10,7 @@ LDFLAGS_K := $(LDFLAGS) $(KERNEL_ARCH_LDFLAGS_K) -D__is_kernel
 LIBS_K := $(KERNEL_ARCH_LIBS_K) -D__is_kernel
 
 KERNEL_OBJS_K =\
-$(KERNEL_ARCH_OBJS_K) \ #BUILD_DIR_ARCH_K/boot.o, BUILD_DIR_ARCH_K/tty.o
+$(KERNEL_ARCH_OBJS_K) \
 $(BUILD_DIR_K)/kernel/kernel.o \
 
 OBJS_K =\
@@ -31,13 +31,12 @@ $(BUILD_DIR_ARCH_K)/crtn.o \
 
 .PHONY: all_k install_k install_headers_k install_kernel_k
 
-all_k: $(OS).kernel
+all_k: $(BUILD_DIR_K)/$(OS).elf
 
-$(BUILD_DIR_K)/$(OS).kernel: $(OBJS_K)
+$(BUILD_DIR_K)/$(OS).elf: $(OBJS_K)
 	$(CC) -T $(ARCH_DIR_K)/linker.ld -o $@ $(CFLAGS_K) $(LINK_LIST_K)
-	@grub-file --is-x86-multiboot $(OS).kernel || echo "Error: no Multiboot header detected."
+	@grub-file --is-x86-multiboot $@ || echo "Error: no Multiboot header detected."
 
-# usr/lib/gcc/i686-elf/14.2.0/
 $(BUILD_DIR_ARCH_K)/crtbegin.o $(BUILD_DIR_ARCH_K)/crtend.o:
 	cp $($(CC) -print-file-name=$(@F)) $@
 
@@ -52,5 +51,5 @@ install_k: install_headers_k install_kernel_k
 install_headers_k:
 	cp -R --preserve=timestamps $(KERNEL_INCLUDE_DIR)/* $(INCLUDE_DIR)/
 
-install_kernel_k: $(BUILD_DIR_K)/$(OS).kernel
+install_kernel_k: $(BUILD_DIR_K)/$(OS).elf
 	cp $< $(BOOT_DIR)/
