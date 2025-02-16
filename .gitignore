@@ -55,9 +55,6 @@ dkms.conf
 .vscode/
 build/
 sysroot/
-!sysroot/boot/
-!sysroot/etc/
-!sysroot/home/
 
 *.kernel
 *.iso
