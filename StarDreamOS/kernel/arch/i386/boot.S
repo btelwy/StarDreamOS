@@ -1,9 +1,9 @@
 # Constants for the Multiboot header
-.set ALIGN_BIT,    1<<0             		# Align loaded modules on page boundaries
-.set MEMINFO_BIT,  1<<1             		# Provide memory map
-.set FLAGS,    ALIGN_BIT | MEMINFO_BIT		# "Flags" field of header
-.set MAGIC,    0x1BADB002 					# Location of header
-.set CHECKSUM, -(MAGIC + FLAGS)				# Verifies Multiboot mode
+.set MAGIC,    0x1BADB002 					# For the "magic" field of header, the kernel location
+.set ALIGN_BIT,    1<<0             		# Flag: align loaded modules on page boundaries
+.set MEMINFO_BIT,  1<<1             		# Flag: provide memory map
+.set FLAGS,    ALIGN_BIT | MEMINFO_BIT		# For the "flags" field of header
+.set CHECKSUM, -(MAGIC + FLAGS)				# For the "checksum" field of header
 
 # Header conforming to version 1 of the Multiboot Standard
 .section .multiboot
@@ -19,10 +19,10 @@ stack_bottom:
 	.skip 0x4000 							# 16 KiB
 stack_top:
 
-# The kernel entry point
 .section .text
 .global _start
 .type _start, @function
+# The kernel entry point
 _start:
 	movl $stack_top, %esp
 

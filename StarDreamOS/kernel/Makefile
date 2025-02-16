@@ -1,65 +1,56 @@
-BOOTDIR ?= $(PREFIX)/boot
-INCLUDEDIR ?= $(PREFIX)/usr/include
-ARCHDIR = ./arch/$(HOST)
+KERNEL_DIR := $(SRC_DIR)/kernel
+ARCH_DIR_K := $(KERNEL_DIR)/arch/$(HOST_ARCH)
+KERNEL_INCLUDE_DIR := $(KERNEL_DIR)/include
 
-include $(ARCHDIR)/make.config
+include $(ARCH_DIR_K)/make.config
 
-CFLAGS := $(CFLAGS) $(KERNEL_ARCH_CFLAGS) -D__is_kernel
-CXXFLAGS := $(CXXFLAGS) $(KERNEL_ARCH_CXXFLAGS) -D__is_kernel
-LDFLAGS := $(LDFLAGS) $(KERNEL_ARCH_LDFLAGS)
-LIBS := $(KERNEL_ARCH_LIBS) -D__is_kernel
+CFLAGS_K := $(CFLAGS) $(KERNEL_ARCH_CFLAGS_K) -D__is_kernel
+CXXFLAGS_K := $(CXXFLAGS) $(KERNEL_ARCH_CXXFLAGS_K) -D__is_kernel
+LDFLAGS_K := $(LDFLAGS) $(KERNEL_ARCH_LDFLAGS_K) -D__is_kernel
+LIBS_K := $(KERNEL_ARCH_LIBS_K) -D__is_kernel
 
-KERNEL_OBJS =\
-$(KERNEL_ARCH_OBJS) \
-./kernel/kernel.o \
+KERNEL_OBJS_K =\
+$(KERNEL_ARCH_OBJS_K) \ #BUILD_DIR_ARCH_K/boot.o, BUILD_DIR_ARCH_K/tty.o
+$(BUILD_DIR_K)/kernel/kernel.o \
 
-OBJS =\
-$(ARCHDIR)/crti.o \
-$(ARCHDIR)/crtbegin.o \
-$(KERNEL_OBJS) \
-$(ARCHDIR)/crtend.o \
-$(ARCHDIR)/crtn.o \
+OBJS_K =\
+$(BUILD_DIR_ARCH_K)/crti.o \
+$(BUILD_DIR_ARCH_K)/crtbegin.o \
+$(KERNEL_OBJS_K) \
+$(BUILD_DIR_ARCH_K)/crtend.o \
+$(BUILD_DIR_ARCH_K)/crtn.o \
 
-LINK_LIST =\
-$(LDFLAGS) \
-$(ARCHDIR)/crti.o \
-$(ARCHDIR)/crtbegin.o \
-$(KERNEL_OBJS) \
-$(LIBS) \
-$(ARCHDIR)/crtend.o \
-$(ARCHDIR)/crtn.o \
+LINK_LIST_K =\
+$(LDFLAGS_K) \
+$(BUILD_DIR_ARCH_K)/crti.o \
+$(BUILD_DIR_ARCH_K)/crtbegin.o \
+$(KERNEL_OBJS_K) \
+$(LIBS_K) \
+$(BUILD_DIR_ARCH_K)/crtend.o \
+$(BUILD_DIR_ARCH_K)/crtn.o \
 
-.PHONY: all_k clean_k install_k install-headers_k install-kernel_k
-.EXTENSIONS: .o .c .S
+.PHONY: all_k install_k install_headers_k install_kernel_k
 
 all_k: $(OS).kernel
 
-$(OS).kernel: $(OBJS) $(ARCHDIR)/linker.ld
-	$(CC) -T $(ARCHDIR)/linker.ld -o $@ $(CFLAGS) $(LINK_LIST)
-	grub-file --is-x86-multiboot $(OS).kernel || echo "Error: no Multiboot header detected."
+$(BUILD_DIR_K)/$(OS).kernel: $(OBJS_K)
+	$(CC) -T $(ARCH_DIR_K)/linker.ld -o $@ $(CFLAGS_K) $(LINK_LIST_K)
+	@grub-file --is-x86-multiboot $(OS).kernel || echo "Error: no Multiboot header detected."
 
-$(ARCHDIR)/crtbegin.o $(ARCHDIR)/crtend.o:
-	OBJ = $($(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=$(@F)) && cp "$$OBJ" $@
+# usr/lib/gcc/i686-elf/14.2.0/
+$(BUILD_DIR_ARCH_K)/crtbegin.o $(BUILD_DIR_ARCH_K)/crtend.o:
+	cp $($(CC) -print-file-name=$(@F)) $@
 
-.c.o:
-	$(CC) -MD -c $< -o $@ $(CFLAGS) $(CXXFLAGS)
+$(BUILD_DIR_K)/%.o: $(KERNEL_DIR)/%.c
+	$(CC) -c $< -o $@ $(CFLAGS_K) $(CXXFLAGS_K)
 
-.S.o:
-	$(CC) -MD -c $< -o $@ $(CFLAGS) $(CXXFLAGS)
+$(BUILD_DIR_K)/%.o: $(KERNEL_DIR)/%.S
+	$(CC) -c $< -o $@ $(CFLAGS_K) $(CXXFLAGS_K)
 
-clean_k:
-	rm -f $(OS).kernel
-	rm -f $(OBJS) *.o */*.o */*/*.o
-	rm -f $(OBJS:.o=.d) *.d */*.d */*/*.d
+install_k: install_headers_k install_kernel_k
 
-install_k: install-headers_k install-kernel_k
+install_headers_k:
+	cp -R --preserve=timestamps $(KERNEL_INCLUDE_DIR)/* $(INCLUDE_DIR)/
 
-install-headers_k:
-	mkdir -p $(INCLUDEDIR)
-	cp -R --preserve=timestamps ./include/* $(INCLUDEDIR)/
-
-install-kernel_k: $(OS).kernel
-	mkdir -p $(BOOTDIR)
-	cp $(OS).kernel $(BOOTDIR)
-
--include $(OBJS:.o=.d)
+install_kernel_k: $(BUILD_DIR_K)/$(OS).kernel
+	cp $< $(BOOT_DIR)/

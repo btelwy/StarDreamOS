@@ -1,73 +1,64 @@
-ARCHDIR = ./arch/$(HOST)
+LIBC_DIR := $(SRC_DIR)/libc
+LIBC_INCLUDE_DIR := $(LIBC_DIR)/include
+ARCH_DIR_C := $(LIBC_DIR)/arch/$(HOST_ARCH)
 
-include $(ARCHDIR)/make.config
+include $(ARCH_DIR_C)/make.config
 
-CFLAGS := $(CFLAGS) $(ARCH_CFLAGS) -D__is_libc
-CXXFLAGS := $(CXXFLAGS) $(ARCH_CXXFLAGS) -D__is_libc
-LIBK_CFLAGS := $(LIBK_CFLAGS) $(KERNEL_ARCH_CFLAGS) -D__is_libk
-LIBK_CXXFLAGS := $(LIBK_CXXFLAGS) $(KERNEL_ARCH_CXXFLAGS) -D__is_libk
+CFLAGS_C := $(CFLAGS) $(ARCH_CFLAGS_C) -D__is_libc
+CXXFLAGS_C := $(CXXFLAGS) $(ARCH_CXXFLAGS_C) -D__is_libc
+LIBK_CFLAGS_C := $(LIBK_CFLAGS_C) $(KERNEL_ARCH_CFLAGS_C) -D__is_libk
+LIBK_CXXFLAGS_C := $(LIBK_CXXFLAGS_C) $(KERNEL_ARCH_CXXFLAGS_C) -D__is_libk
 
-FREEOBJS=\
-$(ARCH_FREEOBJS) \
-./stdio/printf.o \
-./stdio/putchar.o \
-./stdio/puts.o \
-./stdlib/abort.o \
-./string/memcmp.o \
-./string/memcpy.o \
-./string/memmove.o \
-./string/memset.o \
-./string/strlen.o \
+FREE_OBJS_C=\
+$(ARCH_FREE_OBJS_C) \
+$(BUILD_DIR_C)/stdio/printf.o \
+$(BUILD_DIR_C)/stdio/putchar.o \
+$(BUILD_DIR_C)/string/puts.o \
+$(BUILD_DIR_C)/stdlib/abort.o \
+$(BUILD_DIR_C)/string/memcmp.o \
+$(BUILD_DIR_C)/string/memcpy.o \
+$(BUILD_DIR_C)/string/memmove.o \
+$(BUILD_DIR_C)/string/memset.o \
+$(BUILD_DIR_C)/string/strlen.o \
 
-HOSTEDOBJS =\
-$(ARCH_HOSTEDOBJS) \
+HOSTED_OBJS_C =\
+$(ARCH_HOSTED_OBJS_C) \
 
-OBJS =\
-$(FREEOBJS) \
-$(HOSTEDOBJS) \
+OBJS_C =\
+$(FREE_OBJS_C) \
+$(HOSTED_OBJS_C) \
 
-LIBK_OBJS = $(FREEOBJS:.o=.libk.o)
+LIBK_OBJS_C = $(FREE_OBJS_C:.o=.libk.o)
 
-#BINARIES=libc.a libk.a # Not ready for libc yet.
-BINARIES = libk.a
+#BINARIES=libc.a libk.a # libc not ready yet
+BINARIES_C = $(BUILD_DIR_C)/libk.a
 
-.PHONY: all_c clean_c install_c install-headers_c install-libs_c
-.EXTENSIONS: .o .libk.o .c .S
+.PHONY: all_c install_c install_headers_c install_libs_c
 
-all_c: $(BINARIES)
+all_c: $(BINARIES_C)
 
-libc.a: $(OBJS)
-	$(AR) rcs $@ $(OBJS)
+$(BUILD_DIR_C)/libc.a: $(OBJS_C)
+	$(AR) rcs $@ $(OBJS_C)
 
-libk.a: $(LIBK_OBJS)
-	$(AR) rcs $@ $(LIBK_OBJS)
+$(BUILD_DIR_C)/libk.a: $(LIBK_OBJS_C)
+	$(AR) rcs $@ $(LIBK_OBJS_C)
 
-.c.o:
-	$(CC) -MD -c $< -o $@ $(CFLAGS) $(CXXFLAGS)
+$(BUILD_DIR_C)/%.o: $(LIBC_DIR)/%.c
+	$(CC) -c $< -o $@ $(CFLAGS_C) $(CXXFLAGS_C)
 
-.c.S:
-	$(CC) -MD -c $< -o $@ $(CFLAGS) $(CXXFLAGS)
+$(BUILD_DIR_C)/%.o: $(LIBC_DIR)/%.S
+	$(CC) -c $< -o $@ $(CFLAGS_C) $(CXXFLAGS_C)
 
-.c.libk.o:
-	$(CC) -MD -c $< -o $@ $(LIBK_CFLAGS) $(LIBK_CXXFLAGS)
+$(BUILD_DIR_C)/%.libk.o: $(LIBC_DIR)/%.c
+	$(CC) -c $< -o $@ $(LIBK_CFLAGS_C) $(LIBK_CXXFLAGS_C)
 
-.S.libk.o:
-	$(CC) -MD -c $< -o $@ $(LIBK_CFLAGS) $(LIBK_CXXFLAGS)
+$(BUILD_DIR_C)/%.libk.o: $(LIBC_DIR)/%.S
+	$(CC) -c $< -o $@ $(LIBK_CFLAGS_C) $(LIBK_CXXFLAGS_C)
 
-clean_c:
-	rm -f $(BINARIES) *.a
-	rm -f $(OBJS) $(LIBK_OBJS) *.o */*.o */*/*.o
-	rm -f $(OBJS:.o=.d) $(LIBK_OBJS:.o=.d) *.d */*.d */*/*.d
+install_c: install_headers_c install_libs_c
 
-install_c: install-headers_c install-libs_c
+install_headers_c:
+	cp -R --preserve=timestamps $(LIBC_INCLUDE_DIR)/* $(INCLUDE_DIR)/
 
-install-headers_c:
-	mkdir -p $(INCLUDEDIR)
-	cp -R --preserve=timestamps ./include/* $(INCLUDEDIR)/
-
-install-libs_c: $(BINARIES)
-	mkdir -p $(LIBDIR)
-	cp $(BINARIES) $(LIBDIR)/
-
--include $(OBJS:.o=.d)
--include $(LIBK_OBJS:.o=.d)
+install_libs_c: $(BINARIES_C)
+	cp $(BINARIES_C) $(LIB_DIR)/
