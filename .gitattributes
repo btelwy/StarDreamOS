@@ -43,7 +43,9 @@
 *.iso		binary
 
 # Configuration
+*.cfg 		text
 *.conf 		text
+*.config 	text
 Makefile 	text
 *.ld 		text
 *.json 		text

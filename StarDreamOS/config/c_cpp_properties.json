@@ -17,12 +17,12 @@
                 "-isystem",
                 "${workspaceFolder}/sysroot/usr/lib/gcc/i686-elf/14.2.0/include",
                 "-B",
-                "{workspaceFolder}/sysroot/i686-elf/bin",
+                "${workspaceFolder}/sysroot/i686-elf/bin",
                 "-ffreestanding",
                 "-nostdlib",
                 "-lgcc"
             ],
-            "defines": [
+            "defines": [ // Did not seem to recognize C23 true/false keywords without explicit defines
                 "bool=_Bool",
                 "true=1",
                 "false=0"

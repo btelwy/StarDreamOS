@@ -89,7 +89,7 @@ void terminal_put_char(char c) {
 		++terminalRow;
 	}
 
-	// If past the last row, scroll the terminal
+	// If past the last row, scroll the terminal by one line
 	if (terminalRow == VGA_HEIGHT) {
 		terminalRow = 0; // Placeholder
 		// TODO: implement scrolling here
