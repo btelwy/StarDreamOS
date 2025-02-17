@@ -1,9 +1,9 @@
 #ifndef _STRING_H_
 #define _STRING_H_ 1
 
-#include <sys/cdefs.h>
-
 #include <stddef.h>
+
+#include <sys/cdefs.h>
 
 #ifdef __cplusplus
 extern "C" {

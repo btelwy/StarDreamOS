@@ -3,4 +3,11 @@
 
 #define __stardreamos_libc 1
 
+enum exitCodes {
+	EXIT_SUCCESS = 0,
+	EXIT_FAILURE = 1
+};
+
+// TODO: implement errno
+
 #endif

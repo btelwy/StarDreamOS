@@ -1,0 +1,33 @@
+// VS Code config file, development only
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/StarDreamOS/libc/include/**",
+                "${workspaceFolder}/StarDreamOS/kernel/include/**"
+            ],
+            "intelliSenseMode": "linux-gcc-x86",
+            "cStandard": "c23",
+            "cppStandard": "c++23",
+            "compilerPath": "${workspaceFolder}/sysroot/usr/bin/i686-elf-gcc",
+            "compilerArgs": [
+                "--sysroot",
+                "${workspaceFolder}/sysroot",
+                "-isystem",
+                "${workspaceFolder}/sysroot/usr/lib/gcc/i686-elf/14.2.0/include",
+                "-B",
+                "{workspaceFolder}/sysroot/i686-elf/bin",
+                "-ffreestanding",
+                "-nostdlib",
+                "-lgcc"
+            ],
+            "defines": [
+                "bool=_Bool",
+                "true=1",
+                "false=0"
+            ]
+        }
+    ],
+    "version": 4
+}

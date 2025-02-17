@@ -14,7 +14,7 @@ LIBK_CXXFLAGS_C := $(CXXFLAGS_C) $(KERNEL_ARCH_CXXFLAGS_C)
 FREE_OBJS_C=\
 $(ARCH_FREE_OBJS_C) \
 $(BUILD_DIR_STDIO_C)/printf.o \
-$(BUILD_DIR_STDIO_C)/putchar.o \
+$(BUILD_DIR_STDIO_C)/putc.o \
 $(BUILD_DIR_STDIO_C)/puts.o \
 $(BUILD_DIR_STDLIB_C)/abort.o \
 $(BUILD_DIR_STRING_C)/memcmp.o \

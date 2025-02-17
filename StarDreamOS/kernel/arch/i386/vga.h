@@ -3,7 +3,9 @@
 
 #include <stdint.h>
 
-enum vga_color {
+#define i386_VGA_WRITE_ADDR 0xB8000
+
+enum vgaColor {
 	VGA_COLOR_BLACK = 0b0000,
 	VGA_COLOR_BLUE = 0b0001,
 	VGA_COLOR_GREEN = 0b0010,
@@ -22,12 +24,13 @@ enum vga_color {
 	VGA_COLOR_WHITE = 0b1111
 };
 
-static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg) {
-	return bg << 4 | fg;
+// Note: these functions can't be used with only <kernel/tty.h>
+inline uint8_t calc_vga_color(enum vgaColor fg, enum vgaColor bg) {
+	return (bg << 4 | fg);
 }
 
-static inline uint16_t vga_entry(unsigned char uc, uint8_t color) {
-	return (uint16_t) color << 8 | (uint16_t) uc;
+inline uint16_t calc_vga_entry(unsigned char uc, uint8_t color) {
+	return ((uint16_t) color << 8 | (uint16_t) uc);
 }
 
 #endif

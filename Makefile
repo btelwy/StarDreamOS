@@ -9,8 +9,9 @@ QEMU := qemu-system-$(HOST_ARCH)
 
 PROJECT_DIR := $(HOME)/projects/StarDreamOS
 
-SRC_DIR := $(PROJECT_DIR)/StarDreamOS
 BUILD_DIR := $(PROJECT_DIR)/build
+SRC_DIR := $(PROJECT_DIR)/StarDreamOS
+CONFIG_DIR := $(SRC_DIR)/config
 SYSROOT_DIR := $(PROJECT_DIR)/sysroot
 
 BUILD_DIR_K := $(BUILD_DIR)/kernel
@@ -87,7 +88,7 @@ libc: all-c install-libs-c
 kernel: all-k install-kernel-k
 
 make-iso:
-	cp $(SRC_DIR)/grub.cfg $(GRUB_DIR)/
+	cp $(CONFIG_DIR)/grub.cfg $(GRUB_DIR)/
 	@grub-mkrescue $(SYSROOT_DIR) -o $(BUILD_DIR)/$(OS).iso
 
 # grub-pc-bin is needed to load an ELF file

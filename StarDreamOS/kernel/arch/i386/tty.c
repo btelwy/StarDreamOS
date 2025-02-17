@@ -8,52 +8,105 @@
 
 #include "./vga.h"
 
+static uint16_t* const VGA_MEMORY = (uint16_t*) i386_VGA_WRITE_ADDR;
 static const size_t VGA_WIDTH = 80;
 static const size_t VGA_HEIGHT = 25;
-static uint16_t* const VGA_MEMORY = (uint16_t*) 0xB8000;
 
-static size_t terminal_row;
-static size_t terminal_column;
-static uint8_t terminal_color;
-static uint16_t* terminal_buffer;
+static size_t terminalRow;
+static size_t terminalColumn;
+static uint8_t terminalColor;
+static uint16_t* terminalBuf;
 
-void terminal_initialize(void) {
-	terminal_row = 0;
-	terminal_column = 0;
-	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_GRAY, VGA_COLOR_BLACK);
-	terminal_buffer = VGA_MEMORY;
-	for (size_t y = 0; y < VGA_HEIGHT; y++) {
-		for (size_t x = 0; x < VGA_WIDTH; x++) {
-			const size_t index = y * VGA_WIDTH + x;
-			terminal_buffer[index] = vga_entry(' ', terminal_color);
+void terminal_init() {
+	terminalRow = 0;
+	terminalColumn = 0;
+	terminalColor = calc_vga_color(VGA_COLOR_LIGHT_GRAY, VGA_COLOR_BLACK);
+	terminalBuf = VGA_MEMORY;
+
+	for (size_t col = 0; col < VGA_WIDTH; col++) {
+		for (size_t row = 0; row < VGA_HEIGHT; row++) {
+			const size_t index = row * VGA_WIDTH + col;
+			terminalBuf[index] = calc_vga_entry(' ', terminalColor);
 		}
 	}
 }
 
-void terminal_set_color(uint8_t color) {
-	terminal_color = color;
+uint8_t terminal_set_color(uint8_t color) {
+	terminalColor = color;
+
+	return terminalColor;
 }
 
-void terminal_put_entry_at(unsigned char c, uint8_t color, size_t x, size_t y) {
-	const size_t index = y * VGA_WIDTH + x;
-	terminal_buffer[index] = vga_entry(c, color);
+int terminal_set_position(size_t col, size_t row) {
+	if (col >= VGA_WIDTH || row >= VGA_HEIGHT)
+		return EXIT_FAILURE;
+
+	terminalColumn = col;
+	terminalRow = row;
+
+	return EXIT_SUCCESS;
+}
+
+// Does not change values of terminalColumn, terminalRow, and terminalColor
+int terminal_set_entry_at(unsigned char uc, uint8_t color, size_t col, size_t row) {
+	if (col >= VGA_WIDTH || row >= VGA_HEIGHT)
+		return EXIT_FAILURE;
+
+	const size_t index = row * VGA_WIDTH + col;
+	terminalBuf[index] = calc_vga_entry(uc, color);
+
+	return EXIT_SUCCESS;
+}
+
+// This is convenient, but this function wrapper may cause unnecessary overhead after many calls?
+// It does not look at terminal_sent_entry_at()'s exit code because out-of-bounds input is not possible here
+void terminal_set_this_entry(unsigned char uc, uint8_t color) {
+	terminal_set_entry_at(uc, color, terminalColumn, terminalRow);
+	return;
 }
 
 void terminal_put_char(char c) {
 	unsigned char uc = c;
-	terminal_put_entry_at(uc, terminal_color, terminal_column, terminal_row);
-	if (++terminal_column == VGA_WIDTH) {
-		terminal_column = 0;
-		if (++terminal_row == VGA_HEIGHT)
-			terminal_row = 0;
+
+	switch (uc) {
+		// TODO: add cases for other non-printable characters as necessary
+		case '\n':
+			terminalColumn = 0;
+			++terminalRow;
+			break;
+
+		// Printable characters
+		default:
+			terminal_set_this_entry(uc, terminalColor);
+			++terminalColumn;
+			break;
 	}
+
+	/* After printing that character, check postcondition that terminal width, height bounds still hold */
+	// If past the last column, go to new line
+	if (terminalColumn == VGA_WIDTH) {
+		terminalColumn = 0;
+		++terminalRow;
+	}
+
+	// If past the last row, scroll the terminal
+	if (terminalRow == VGA_HEIGHT) {
+		terminalRow = 0; // Placeholder
+		// TODO: implement scrolling here
+	}
+	// Note: if vertical tab is implemented, these checks must be reconsidered
+
+	return;
 }
 
-void terminal_write(const char* data, size_t size) {
-	for (size_t i = 0; i < size; i++)
+void terminal_put_data(const char* data, size_t size) {
+	for (size_t i = 0; i < size; i++) {
 		terminal_put_char(data[i]);
+	}
+	return;
 }
 
-void terminal_write_str(const char* data) {
-	terminal_write(data, strlen(data));
+void terminal_put_string(const char* str) {
+	terminal_put_data(str, strlen(str));
+	return;
 }
